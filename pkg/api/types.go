@@ -2001,6 +2001,25 @@ type SecretList struct {
 	Items []Secret `json:"items"`
 }
 
+type ConfigurationFlag struct {
+	Flag  string `json:"flag"`
+	Value string `json:"value,omitempty"`
+}
+
+type Configuration struct {
+	TypeMeta   `json:",inline"`
+	ObjectMeta `json:"metadata,omitempty"`
+
+	Flags []ConfigurationFlag `json:"flags,omitempty"`
+}
+
+type ConfigurationList struct {
+	TypeMeta `json:",inline"`
+	ListMeta `json:"metadata,omitempty"`
+
+	Items []Configuration `json:"items"`
+}
+
 // These constants are for remote command execution and port forwarding and are
 // used by both the client side and server side components.
 //

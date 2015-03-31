@@ -162,6 +162,13 @@ func ValidateServiceAccountName(name string, prefix bool) (bool, string) {
 	return nameIsDNSSubdomain(name, prefix)
 }
 
+// ValidateConfigurationName can be used to check whether the given service account name is valid.
+// Prefix indicates this name will be used as part of generation, in which case
+// trailing dashes are allowed.
+func ValidateConfigurationName(name string, prefix bool) (bool, string) {
+	return nameIsDNSSubdomain(name, prefix)
+}
+
 // ValidateEndpointsName can be used to check whether the given endpoints name is valid.
 // Prefix indicates this name will be used as part of generation, in which case
 // trailing dashes are allowed.
@@ -1453,6 +1460,13 @@ func ValidateSecretUpdate(oldSecret, newSecret *api.Secret) errs.ValidationError
 	}
 
 	allErrs = append(allErrs, ValidateSecret(newSecret)...)
+	return allErrs
+}
+
+func ValidateConfiguration(config *api.Configuration) errs.ValidationErrorList {
+	allErrs := errs.ValidationErrorList{}
+	allErrs = append(allErrs, ValidateObjectMeta(&config.ObjectMeta, true, ValidateConfigurationName).Prefix("metadata")...)
+
 	return allErrs
 }
 

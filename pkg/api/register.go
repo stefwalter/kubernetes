@@ -53,6 +53,9 @@ func init() {
 		&ServiceAccountList{},
 		&Secret{},
 		&SecretList{},
+		&Configuration{},
+		&ConfigurationFlag{},
+		&ConfigurationList{},
 		&PersistentVolume{},
 		&PersistentVolumeList{},
 		&PersistentVolumeClaim{},
@@ -100,6 +103,9 @@ func (*ServiceAccount) IsAnAPIObject()            {}
 func (*ServiceAccountList) IsAnAPIObject()        {}
 func (*Secret) IsAnAPIObject()                    {}
 func (*SecretList) IsAnAPIObject()                {}
+func (*Configuration) IsAnAPIObject()             {}
+func (*ConfigurationFlag) IsAnAPIObject()         {}
+func (*ConfigurationList) IsAnAPIObject()         {}
 func (*PersistentVolume) IsAnAPIObject()          {}
 func (*PersistentVolumeList) IsAnAPIObject()      {}
 func (*PersistentVolumeClaim) IsAnAPIObject()     {}

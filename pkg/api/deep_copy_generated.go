@@ -117,6 +117,52 @@ func deepCopy_api_ComponentStatusList(in ComponentStatusList, out *ComponentStat
 	return nil
 }
 
+func deepCopy_api_Configuration(in Configuration, out *Configuration, c *conversion.Cloner) error {
+	if err := deepCopy_api_TypeMeta(in.TypeMeta, &out.TypeMeta, c); err != nil {
+		return err
+	}
+	if err := deepCopy_api_ObjectMeta(in.ObjectMeta, &out.ObjectMeta, c); err != nil {
+		return err
+	}
+	if in.Flags != nil {
+		out.Flags = make([]ConfigurationFlag, len(in.Flags))
+		for i := range in.Flags {
+			if err := deepCopy_api_ConfigurationFlag(in.Flags[i], &out.Flags[i], c); err != nil {
+				return err
+			}
+		}
+	} else {
+		out.Flags = nil
+	}
+	return nil
+}
+
+func deepCopy_api_ConfigurationFlag(in ConfigurationFlag, out *ConfigurationFlag, c *conversion.Cloner) error {
+	out.Flag = in.Flag
+	out.Value = in.Value
+	return nil
+}
+
+func deepCopy_api_ConfigurationList(in ConfigurationList, out *ConfigurationList, c *conversion.Cloner) error {
+	if err := deepCopy_api_TypeMeta(in.TypeMeta, &out.TypeMeta, c); err != nil {
+		return err
+	}
+	if err := deepCopy_api_ListMeta(in.ListMeta, &out.ListMeta, c); err != nil {
+		return err
+	}
+	if in.Items != nil {
+		out.Items = make([]Configuration, len(in.Items))
+		for i := range in.Items {
+			if err := deepCopy_api_Configuration(in.Items[i], &out.Items[i], c); err != nil {
+				return err
+			}
+		}
+	} else {
+		out.Items = nil
+	}
+	return nil
+}
+
 func deepCopy_api_Container(in Container, out *Container, c *conversion.Cloner) error {
 	out.Name = in.Name
 	out.Image = in.Image
@@ -2080,6 +2126,9 @@ func init() {
 		deepCopy_api_ComponentCondition,
 		deepCopy_api_ComponentStatus,
 		deepCopy_api_ComponentStatusList,
+		deepCopy_api_Configuration,
+		deepCopy_api_ConfigurationFlag,
+		deepCopy_api_ConfigurationList,
 		deepCopy_api_Container,
 		deepCopy_api_ContainerPort,
 		deepCopy_api_ContainerState,

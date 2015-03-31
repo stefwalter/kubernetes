@@ -32,7 +32,7 @@ This resource is stored in ``etcd`` and accessible to interested/necessary compo
 through the API server. Components look up ``Configuration`` when they start and
 optionally watch for changes to that configuration.
 
-``Configuration`` resources are identified by their ``TypeMeta`` ``name``. By default
+``Configuration`` resources are identified by their ``ListMeta`` ``name``. By default
 each ``Kubernetes`` component uses configuration associated with its own well-known
 executable name, (eg: ```scheduler```). This can be overridden for some components (eg:
 various kubelet's may use different configurations if desired).
