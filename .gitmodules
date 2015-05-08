@@ -1,0 +1,3 @@
+[submodule "www/master/components/graph"]
+	path = www/master/components/graph
+	url = git@github.com:kubernetes-ui/graph.git
