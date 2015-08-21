@@ -63,30 +63,34 @@ import (
 
 const defaultRootDir = "/var/lib/kubelet"
 
+type KubeletManifestSettings struct {
+	Path                           string             `json:"path,omitempty"`
+	URL                            string             `json:"url,omitempty"`
+	URLHeader                      string             `json:"urlHeader,omitempty"`
+	SyncFrequency                  time.Duration      `json:"syncFrequency,omitempty"`
+	FileCheckFrequency             time.Duration      `json:"fileCheckFrequency,omitempty"`
+	HTTPCheckFrequency             time.Duration      `json:"httpCheckFrequency,omitempty"`
+}
+
 // KubeletServer encapsulates all of the parameters necessary for starting up
 // a kubelet. These can either be set via command line or directly.
-type KubeletServer struct {
-	Config                         string
-	SyncFrequency                  time.Duration
-	FileCheckFrequency             time.Duration
-	HTTPCheckFrequency             time.Duration
-	ManifestURL                    string
-	ManifestURLHeader              string
-	EnableServer                   bool
-	Address                        net.IP
-	Port                           uint
-	ReadOnlyPort                   uint
-	HostnameOverride               string
-	PodInfraContainerImage         string
-	DockerEndpoint                 string
-	RootDirectory                  string
-	AllowPrivileged                bool
-	HostNetworkSources             string
-	RegistryPullQPS                float64
-	RegistryBurst                  int
-	RunOnce                        bool
-	EnableDebuggingHandlers        bool
-	MinimumGCAge                   time.Duration
+type KubeletSettings struct {
+        Manifest                       KubeletManifestSettings  `json:"manifest,omitempty"`
+	EnableServer                   bool                     `json:"enableServer,omitempty"`
+	Address                        string                   `json:"address,omitempty"`
+	Port                           uint                     `json:"port,omitempty"`
+	ReadOnlyPort                   uint                     `json:"readOnlyPort,omitempty"`
+	HostnameOverride               string                   `json:"hostnameOverride,omitempty"`
+	PodInfraContainerImage         string                   `json:"podInfraContainerImage,omitempty"`
+	DockerEndpoint                 string                   `json:"dockerEndpoint,omitempty"`
+	RootDirectory                  string                   `json:"rootDirectory,omitempty"`
+	AllowPrivileged                bool                     `json:"allowPrivileged,omitempty"`
+	HostNetworkSources             string                   `json:"hostNetworkSources,omitempty"`
+	RegistryPullQPS                float64                  `json:"RegistryPullQPS,omitempty"`
+	RegistryBurst                  int                      `json:"RegistryBurst,omitempty"`
+	RunOnce                        bool                     `json:"RunOnce,omitempty"`
+	EnableDebuggingHandlers        bool                     `json:"-"`
+	MinimumGCAge                   time.Duration            `json:"minimumContainerTtlDuration,omitempty"`
 	MaxPerPodContainerCount        int
 	MaxContainerCount              int
 	AuthPath                       util.StringFlag // Deprecated -- use KubeConfig instead
@@ -146,14 +150,16 @@ type KubeletBootstrap interface {
 // create and initialize a Kubelet instance
 type KubeletBuilder func(kc *KubeletConfig) (KubeletBootstrap, *config.PodConfig, error)
 
-// NewKubeletServer will create a new KubeletServer with default values.
-func NewKubeletServer() *KubeletServer {
-	return &KubeletServer{
-		SyncFrequency:               10 * time.Second,
-		FileCheckFrequency:          20 * time.Second,
-		HTTPCheckFrequency:          20 * time.Second,
+// NewKubeletSettings will create a new KubeletSettings with default values.
+func NewKubeletSettings() *KubeletSettings {
+	return &KubeletSettings{
+                Manifest: KubeletManifestSettings{
+			SyncFrequency:               10 * time.Second,
+			FileCheckFrequency:          20 * time.Second,
+			HTTPCheckFrequency:          20 * time.Second,
+		},
 		EnableServer:                true,
-		Address:                     net.ParseIP("0.0.0.0"),
+		Address:                     "0.0.0.0",
 		Port:                        ports.KubeletPort,
 		ReadOnlyPort:                ports.KubeletReadOnlyPort,
 		PodInfraContainerImage:      dockertools.PodInfraContainerImage,
@@ -189,14 +195,14 @@ func NewKubeletServer() *KubeletServer {
 	}
 }
 
-// AddFlags adds flags for a specific KubeletServer to the specified FlagSet
-func (s *KubeletServer) AddFlags(fs *pflag.FlagSet) {
-	fs.StringVar(&s.Config, "config", s.Config, "Path to the config file or directory of files")
-	fs.DurationVar(&s.SyncFrequency, "sync-frequency", s.SyncFrequency, "Max period between synchronizing running containers and config")
-	fs.DurationVar(&s.FileCheckFrequency, "file-check-frequency", s.FileCheckFrequency, "Duration between checking config files for new data")
-	fs.DurationVar(&s.HTTPCheckFrequency, "http-check-frequency", s.HTTPCheckFrequency, "Duration between checking http for new data")
-	fs.StringVar(&s.ManifestURL, "manifest-url", s.ManifestURL, "URL for accessing the container manifest")
-	fs.StringVar(&s.ManifestURLHeader, "manifest-url-header", s.ManifestURLHeader, "HTTP header to use when accessing the manifest URL, with the key separated from the value with a ':', as in 'key:value'")
+// AddFlags adds flags for a specific KubeletSettings to the specified FlagSet
+func (s *KubeletSettings) AddFlags(fs *pflag.FlagSet) {
+	fs.StringVar(&s.Manifest.Path, "config", s.Manifest.Path, "Path to the config file or directory of files")
+	fs.DurationVar(&s.Manifest.SyncFrequency, "sync-frequency", s.Manifest.SyncFrequency, "Max period between synchronizing running containers and config")
+	fs.DurationVar(&s.Manifest.FileCheckFrequency, "file-check-frequency", s.Manifest.FileCheckFrequency, "Duration between checking config files for new data")
+	fs.DurationVar(&s.Manifest.HTTPCheckFrequency, "http-check-frequency", s.Manifest.HTTPCheckFrequency, "Duration between checking http for new data")
+	fs.StringVar(&s.Manifest.URL, "manifest-url", s.Manifest.URL, "URL for accessing the container manifest")
+	fs.StringVar(&s.Manifest.URLHeader, "manifest-url-header", s.Manifest.URLHeader, "HTTP header to use when accessing the manifest URL, with the key separated from the value with a ':', as in 'key:value'")
 	fs.BoolVar(&s.EnableServer, "enable-server", s.EnableServer, "Enable the Kubelet's server")
 	fs.IPVar(&s.Address, "address", s.Address, "The IP address for the Kubelet to serve on (set to 0.0.0.0 for all interfaces)")
 	fs.UintVar(&s.Port, "port", s.Port, "The port for the Kubelet to serve on. Note that \"kubectl logs\" will not work if you set this flag.") // see #9325
