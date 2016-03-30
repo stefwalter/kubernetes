@@ -17,17 +17,40 @@ limitations under the License.
 package parsers
 
 import (
-	"github.com/docker/docker/pkg/parsers"
+	"strings"
 )
 
 const (
 	defaultImageTag = "latest"
 )
 
+// Removed from docker code in:
+// https://github.com/docker/docker/commit/4352da7803d182a6013a5238ce20a7c749db979a
+//
+// ParseRepositoryTag gets a repos name and returns the right reposName + tag|digest
+// The tag can be confusing because of a port in a repository name.
+//     Ex: localhost.localdomain:5000/samalba/hipache:latest
+//     Digest ex: localhost:5000/foo/bar@sha256:bc8813ea7b3603864987522f02a76101c17ad122e1c46d790efc0fca78ca7bfb
+func parseRepositoryTag(repos string) (string, string) {
+	n := strings.Index(repos, "@")
+	if n >= 0 {
+		parts := strings.Split(repos, "@")
+		return parts[0], parts[1]
+	}
+	n = strings.LastIndex(repos, ":")
+	if n < 0 {
+		return repos, ""
+	}
+	if tag := repos[n+1:]; !strings.Contains(tag, "/") {
+		return repos[:n], tag
+	}
+	return repos, ""
+}
+
 // parseImageName parses a docker image string into two parts: repo and tag.
 // If tag is empty, return the defaultImageTag.
 func ParseImageName(image string) (string, string) {
-	repoToPull, tag := parsers.ParseRepositoryTag(image)
+	repoToPull, tag := parseRepositoryTag(image)
 	// If no tag was specified, use the default "latest".
 	if len(tag) == 0 {
 		tag = defaultImageTag
