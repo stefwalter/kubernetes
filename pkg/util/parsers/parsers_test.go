@@ -39,8 +39,10 @@ func TestParseImageName(t *testing.T) {
 		{Input: "url:5000/repo@sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", Repo: "url:5000/repo", Image: "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},
 	}
 	for _, testCase := range testCases {
-		repo, image := ParseImageName(testCase.Input)
-		if repo != testCase.Repo || image != testCase.Image {
+		repo, image, err := ParseImageName(testCase.Input)
+                if err != nil {
+                        t.Errorf("ParseImageName(%s) failed: %v", testCase.Input, err)
+		} else if repo != testCase.Repo || image != testCase.Image {
 			t.Errorf("Expected repo: '%s' and image: '%s', got '%s' and '%s'", "root", "", repo, image)
 		}
 	}
